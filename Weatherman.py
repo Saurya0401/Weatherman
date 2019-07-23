@@ -20,8 +20,8 @@ def get_weather(city):
         return "\nWeather Report".upper() + \
                "\n-----------------------" + \
                f"\nCity: {weather_prop['city']}" + \
-               f"\nTemperature: {weather_prop['temp']}°C, (Minimum: {weather_prop['temp_min']}°C, " + \
-               f"Maximum: {weather_prop['temp_max']}°C)" + \
+               f"\nTemperature: {weather_prop['temp']}°C, (Min: {weather_prop['temp_min']}°C, " + \
+               f"Max: {weather_prop['temp_max']}°C)" + \
                f"\nHumidity: {weather_prop['humidity']}%" + \
                f"\n{weather_prop['weather_status']}." + \
                "\n-----------------------" + \
