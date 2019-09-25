@@ -7,35 +7,33 @@ from discord.ext import commands
 def get_weather(city):
     parameters = {'q': str(city),
                   'APPID': 'eb40ee84dcd396fe4f4c745a79b01809'}
-    response = requests.api.get(url='https://api.openweathermap.org/data/2.5/weather', params=parameters)
-    if response.status_code == 200:
-        cur_weather = response.json()
-        weather_prop = {'city': f"{cur_weather['name']}, {cur_weather['sys']['country']}",
-                        'temp': '%.1f' % (cur_weather['main'].get('temp') - 273.15),
-                        'temp_min': '%.1f' % (cur_weather['main'].get('temp_min') - 273.15),
-                        'temp_max': '%.1f' % (cur_weather['main'].get('temp_max') - 273.15),
-                        'humidity': cur_weather['main'].get('humidity'),
-                        'weather_status': cur_weather['weather'][0].get('description').capitalize()}
-
-        return "\nWeather Report".upper() + \
-               "\n-----------------------" + \
-               f"\nCity: {weather_prop['city']}" + \
-               f"\nTemperature: {weather_prop['temp']}°C, (Min: {weather_prop['temp_min']}°C, " + \
-               f"Max: {weather_prop['temp_max']}°C)" + \
-               f"\nHumidity: {weather_prop['humidity']}%" + \
-               f"\n{weather_prop['weather_status']}." + \
-               "\n-----------------------" + \
-               "\nWeather service provided by openweathermap.org."
+    try:
+        response = requests.api.get(url='https://api.openweathermap.org/data/2.5/weather', params=parameters)
+    except requests.exceptions.RequestException as e:
+        return f"Error: Connection Error. Details:\n\n{e.args[0]}"
     else:
-        errors = {400: "Error 400: Bad request.",
-                  401: "Error 401: Auth token expired.",
-                  404: "Error 404: Not found. Please check city name and/or country code.",
-                  500: "Error 500: Internal server error.",
-                  503: "Error 503: Weather service currently unavailable."}
-        return errors[response.status_code]
+        if response.status_code == 200:
+            cur_weather = response.json()
+            return "\nWeather Report".upper() + \
+                   "\n-----------------------" + \
+                   f"\nCity: {cur_weather['name']}, {cur_weather['sys']['country']}" + \
+                   f"\nTemperature: {'%.1f' % (cur_weather['main'].get('temp') - 273.15)}°C, " \
+                   f"(Minimum: {'%.1f' % (cur_weather['main'].get('temp_min') - 273.15)}°C, " + \
+                   f"Maximum: {'%.1f' % (cur_weather['main'].get('temp_max') - 273.15)}°C)" + \
+                   f"\nHumidity: {cur_weather['main'].get('humidity')}%" + \
+                   f"\n{cur_weather['weather'][0].get('description').capitalize()}." + \
+                   "\n-----------------------" + \
+                   "\nWeather service provided by openweathermap.org."
+        else:
+            errors = {400: "Error 400: Bad request.",
+                      401: "Error 401: Auth token expired.",
+                      404: "Error 404: Not found. Please check city name and/or country code.",
+                      500: "Error 500: Internal server error.",
+                      503: "Error 503: Weather service currently unavailable."}
+            return errors[response.status_code]
 
 
-# initialise a discord bot and remove default help command
+# initialise a discord bot
 token = open('token.txt', 'r').read()
 bot = commands.Bot(command_prefix="!")
 bot.remove_command('help')
@@ -60,6 +58,7 @@ async def info(ctx):
     await ctx.send(embed=bot_info)
 
 
+# remove default help command
 @bot.command()
 async def help(ctx):
     help_info = discord.Embed(title="Weatherman", description="List of commands:")
