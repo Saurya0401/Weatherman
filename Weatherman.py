@@ -5,10 +5,17 @@ from discord.ext import commands
 
 # function to get weather via openweathermap.org
 def get_weather(city):
+    ip_loc = False
+    if city == "here":
+        ip = requests.get('https://api.ipify.org').text
+        loc_resp = requests.api.get(
+            url=f"https://api.ipgeolocation.io/ipgeo?apiKey=064f6ca33a9140c2905defe5b09059fd&ip={ip}").json()
+        city = f"{loc_resp['city']}, {loc_resp['country_code2']}"
+        ip_loc = True
     parameters = {'q': str(city),
                   'APPID': 'eb40ee84dcd396fe4f4c745a79b01809'}
     try:
-        response = requests.api.get(url='https://api.openweathermap.org/data/2.5/weather', params=parameters)
+        response = requests.api.get(url='http://api.openweathermap.org/data/2.5/weather', params=parameters)
     except requests.exceptions.RequestException as e:
         return f"Error: Connection Error. Details:\n\n{e.args[0]}"
     else:
@@ -23,7 +30,8 @@ def get_weather(city):
                    f"\nHumidity: {cur_weather['main'].get('humidity')}%" + \
                    f"\n{cur_weather['weather'][0].get('description').capitalize()}." + \
                    "\n-----------------------" + \
-                   "\nWeather service provided by openweathermap.org."
+                   f"\nWeather service provided by openweathermap.org." \
+                   f"{' Location acquired from ip address, may not be accurate.' if ip_loc == True else ''}"
         else:
             errors = {400: "Error 400: Bad request.",
                       401: "Error 401: Auth token expired.",
@@ -70,4 +78,5 @@ async def help(ctx):
     await ctx.send(embed=help_info)
 
 
-bot.run(token)
+if __name__ == '__main__':
+    bot.run(token)
